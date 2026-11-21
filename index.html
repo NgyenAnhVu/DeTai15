@@ -28,7 +28,7 @@
             background: var(--bg-gradient);
             color: var(--text-main);
             min-height: 100vh;
-            padding: 24px 16px;
+            padding: 20px 16px;
         }
 
         .container {
@@ -39,7 +39,7 @@
         /* Header Banner */
         .header {
             background: var(--card-bg);
-            padding: 20px 28px;
+            padding: 18px 26px;
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
             display: flex;
@@ -47,7 +47,7 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             border: 1px solid rgba(255,255,255,0.8);
         }
 
@@ -58,8 +58,8 @@
         }
 
         .logo-box {
-            width: 46px;
-            height: 46px;
+            width: 44px;
+            height: 44px;
             background: linear-gradient(135deg, #2563eb, #3b82f6);
             color: white;
             border-radius: 12px;
@@ -71,7 +71,7 @@
         }
 
         .header-title h1 {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 700;
             color: var(--text-main);
         }
@@ -124,7 +124,7 @@
         .main-grid {
             display: grid;
             grid-template-columns: 1fr 1.25fr;
-            gap: 24px;
+            gap: 20px;
             align-items: start;
         }
 
@@ -135,17 +135,17 @@
         .card {
             background: var(--card-bg);
             border-radius: 16px;
-            padding: 24px;
+            padding: 22px;
             box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
             border: 1px solid rgba(255,255,255,0.8);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border);
         }
@@ -158,7 +158,16 @@
             gap: 8px;
         }
 
-        .form-group { margin-bottom: 16px; }
+        .count-tag {
+            font-size: 12px;
+            font-weight: 600;
+            background: #eff6ff;
+            color: var(--primary);
+            padding: 2px 9px;
+            border-radius: 999px;
+        }
+
+        .form-group { margin-bottom: 15px; }
 
         label {
             display: block;
@@ -254,18 +263,37 @@
             display: none;
         }
 
+        /* Custom Scrollbar */
+        .notify-list::-webkit-scrollbar,
+        .table-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .notify-list::-webkit-scrollbar-thumb,
+        .table-wrap::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+
+        .notify-list::-webkit-scrollbar-thumb:hover,
+        .table-wrap::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
         /* Realtime Notification Cards */
         .notify-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            max-height: 290px;
+            gap: 10px;
+            max-height: 190px;
             overflow-y: auto;
+            padding-right: 4px;
         }
 
         .empty-state {
             text-align: center;
-            padding: 28px 16px;
+            padding: 24px 16px;
             color: var(--text-muted);
             font-size: 13px;
             background: #f8fafc;
@@ -278,7 +306,7 @@
             border: 1px solid #bbf7d0;
             border-left: 4px solid #16a34a;
             border-radius: 10px;
-            padding: 14px 16px;
+            padding: 12px 14px;
             animation: slideIn 0.35s ease-out;
         }
 
@@ -291,20 +319,26 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .score-badge {
             background: #16a34a;
             color: white;
             font-weight: 700;
-            font-size: 13px;
-            padding: 3px 10px;
+            font-size: 12px;
+            padding: 2px 10px;
             border-radius: 999px;
         }
 
-        /* History Table */
-        .table-wrap { overflow-x: auto; }
+        /* History Table với thanh cuộn và tiêu đề ghim cố định */
+        .table-wrap {
+            max-height: 295px;
+            overflow-y: auto;
+            overflow-x: auto;
+            border: 1px solid #f1f5f9;
+            border-radius: 10px;
+        }
 
         table {
             width: 100%;
@@ -313,6 +347,9 @@
         }
 
         th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
             text-align: left;
             padding: 10px 10px;
             background: #f8fafc;
@@ -323,9 +360,13 @@
         }
 
         td {
-            padding: 11px 10px;
+            padding: 10px 10px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: #f8fafc;
         }
 
         .time-cell {
@@ -420,7 +461,7 @@
             <!-- History Box -->
             <div class="card">
                 <div class="card-header">
-                    <h2>📋 Lịch sử bài đã nộp</h2>
+                    <h2>📋 Lịch sử bài đã nộp <span id="historyCount" class="count-tag">0 bài</span></h2>
                     <button class="btn-refresh" onclick="loadHistory()">↻ Làm mới</button>
                 </div>
                 <div id="historyArea" class="table-wrap">
@@ -435,10 +476,8 @@
     const API_BASE = "http://localhost:5158";
     const HUB_URL = "http://localhost:5200/notificationHub";
 
-    // Định dạng thời gian chuẩn Việt Nam (HH:mm:ss dd/MM/yyyy)
     function formatDateTime(rawDate) {
         if (!rawDate) return "-";
-        // Nếu chuỗi ISO từ .NET thiếu chữ Z ở cuối thì thêm vào để tự chuyển sang giờ VN (+7)
         const isoStr = (typeof rawDate === "string" && !rawDate.endsWith("Z") && !rawDate.includes("+"))
             ? rawDate + "Z"
             : rawDate;
@@ -449,7 +488,6 @@
         return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
     }
 
-    // Đếm ký tự realtime
     function updateCharCount() {
         const len = document.getElementById("content").value.trim().length;
         const el = document.getElementById("charCount");
@@ -457,7 +495,6 @@
         el.className = len >= 20 ? "char-ok" : "";
     }
 
-    // Kết nối SignalR
     const connection = new signalR.HubConnectionBuilder()
         .withUrl(HUB_URL)
         .withAutomaticReconnect()
@@ -482,7 +519,7 @@
                 <strong>✅ Bài nộp #${id} đã có điểm!</strong>
                 <span class="score-badge">${score} / 10 điểm</span>
             </div>
-            <div style="font-size: 13px; color: #334155; margin-bottom: 4px;">
+            <div style="font-size: 13px; color: #334155; margin-bottom: 3px;">
                 Nhận xét: <i>"${feedback}"</i>
             </div>
             <div style="font-size: 11.5px; color: #64748b;">
@@ -504,7 +541,6 @@
             console.error(err);
         });
 
-    // Tải danh sách bài tập
     async function loadAssignments() {
         try {
             const res = await fetch(`${API_BASE}/assignments`);
@@ -516,7 +552,6 @@
         }
     }
 
-    // Nộp bài
     async function submitAssignment() {
         const studentId = parseInt(document.getElementById("studentSelect").value);
         const assignmentId = document.getElementById("assignmentSelect").value;
@@ -548,13 +583,14 @@
         }
     }
 
-    // Tải lịch sử bài nộp của sinh viên đang chọn
     async function loadHistory() {
         const studentId = document.getElementById("studentSelect").value;
         try {
             const res = await fetch(`${API_BASE}/students/${studentId}/submissions`);
             if (!res.ok) return;
             const data = await res.json();
+
+            document.getElementById("historyCount").textContent = `${data.length} bài`;
 
             if (data.length === 0) {
                 document.getElementById("historyArea").innerHTML = `<div class="empty-state">Sinh viên này chưa có bài nộp nào.</div>`;
