@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Hệ thống Nộp bài & Chấm tự động</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 20px; background: #f4f6f9; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        textarea, select, button { width: 100%; padding: 10px; margin-top: 8px; box-sizing: border-box; font-size: 15px; }
+        button { background: #0066cc; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0052a3; }
+        .status { padding: 8px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .online { background: #d4edda; color: #155724; }
+        .offline { background: #f8d7da; color: #721c24; }
+        .noti-item { background: #e8f4fd; border-left: 4px solid #0066cc; padding: 12px; margin-top: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🎓 Cổng Nộp Bài Tập Sinh Viên</h2>
+        <div>Trạng thái Realtime: <span id="wsStatus" class="status offline">Đang kết nối...</span></div>
+        
+        <label style="display:block; margin-top:15px;"><b>Chọn sinh viên:</b></label>
+        <select id="studentId">
+            <option value="1">1 - Nguyễn Văn A (sv1@ictu.edu.vn)</option>
+            <option value="2">2 - Trần Thị B (sv2@ictu.edu.vn)</option>
+        </select>
+
+        <label style="display:block; margin-top:15px;"><b>Chọn bài tập:</b></label>
+        <select id="assignmentId">
+            <option value="1">Bài tập 1: Lập trình hướng sự kiện</option>
+            <option value="2">Bài tập 2: Thực hành RabbitMQ</option>
+        </select>
+
+        <label style="display:block; margin-top:15px;"><b>Nội dung bài làm:</b></label>
+        <textarea id="content" rows="4" placeholder="Nhập nội dung bài làm (từ 20 ký tự trở lên sẽ được 9 điểm)..."></textarea>
+
+        <button onclick="submitAssignment()">Nộp Bài Ngay</button>
+        <p id="submitMsg" style="color: green; font-weight: bold;"></p>
+    </div>
+
+    <div class="card">
+        <h3>🔔 Thông Báo Kết Quả Chấm Tự Động (Realtime)</h3>
+        <div id="notifications"><i>Chưa có thông báo mới...</i></div>
+    </div>
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("http://localhost:5200/notificationHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveGradingResult", (jsonStr) => {
+            const data = JSON.parse(jsonStr);
+            const container = document.getElementById("notifications");
+            if (container.innerHTML.includes("Chưa có thông báo")) container.innerHTML = "";
+            
+            container.innerHTML = `
+                <div class="noti-item">
+                    <b>✅ Bài nộp #${data.SubmissionId} đã chấm xong!</b><br>
+                    Sinh viên ID: <b>${data.StudentId}</b> | Bài tập ID: <b>${data.AssignmentId}</b><br>
+                    Điểm số: <span style="color:red; font-size:18px; font-weight:bold;">${data.Score} / 10</span><br>
+                    Nhận xét: <i>${data.Feedback}</i>
+                </div>
+            ` + container.innerHTML;
+        });
+
+        connection.start()
+            .then(() => {
+                const el = document.getElementById("wsStatus");
+                el.textContent = "Đã kết nối SignalR (Online)";
+                el.className = "status online";
+            })
+            .catch(err => console.error(err));
+
+        async function submitAssignment() {
+            const studentId = parseInt(document.getElementById("studentId").value);
+            const assignmentId = document.getElementById("assignmentId").value;
+            const content = document.getElementById("content").value;
+
+            const res = await fetch(`http://localhost:5158/assignments/${assignmentId}/submissions`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ studentId, content })
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                document.getElementById("submitMsg").textContent = `Đã nộp thành công (Mã bài #${result.id})! Hệ thống đang chấm tự động...`;
+            }
+        }
+    </script>
+</body>
+</html>

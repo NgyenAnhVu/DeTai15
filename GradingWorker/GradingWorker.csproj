@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-GradingWorker-af109c2b-ef12-49fe-9c97-dfa2f4ece091</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.14" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
+  </ItemGroup>
+</Project>
