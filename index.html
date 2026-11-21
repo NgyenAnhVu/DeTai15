@@ -441,7 +441,14 @@
         .withAutomaticReconnect()
         .build();
 
-    connection.on("ReceiveGradingResult", (data) => {
+    connection.on("ReceiveGradingResult", (raw) => {
+        // Parse chuỗi JSON từ NotificationService nếu cần
+        const data = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+        const id = data.submissionId ?? data.SubmissionId ?? data.id ?? data.Id ?? "?";
+        const score = data.score ?? data.Score ?? 0;
+        const feedback = data.feedback ?? data.Feedback ?? "Đã hoàn thành chấm điểm.";
+
         const container = document.getElementById("notifications");
         const empty = container.querySelector(".empty-state");
         if (empty) empty.remove();
@@ -450,11 +457,11 @@
         item.className = "notify-card";
         item.innerHTML = `
             <div class="notify-top">
-                <strong>✅ Bài nộp #${data.submissionId} đã có điểm!</strong>
-                <span class="score-badge">${data.score} / 10 điểm</span>
+                <strong>✅ Bài nộp #${id} đã có điểm!</strong>
+                <span class="score-badge">${score} / 10 điểm</span>
             </div>
             <div style="font-size: 13px; color: #334155;">
-                Nhận xét: <i>"${data.feedback}"</i>
+                Nhận xét: <i>"${feedback}"</i>
             </div>
         `;
         container.prepend(item);
@@ -478,7 +485,7 @@
             const res = await fetch(`${API_BASE}/assignments`);
             const list = await res.json();
             const select = document.getElementById("assignmentSelect");
-            select.innerHTML = list.map(a => `<option value="${a.id}">Bài tập ${a.id}: ${a.title}</option>`).join("");
+            select.innerHTML = list.map(a => `<option value="${a.id}">${a.title}</option>`).join("");
         } catch (e) {
             console.error("Lỗi tải danh sách bài tập:", e);
         }
