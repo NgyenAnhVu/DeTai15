@@ -2,117 +2,500 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Hệ thống Nộp bài & Chấm điểm Tự động - Đề tài 15</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Nộp Bài Tập Sinh Viên - Đề tài 15</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 750px; margin: 30px auto; padding: 20px; background: #f4f6f9; color: #333; }
-        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
-        h2, h3 { margin-top: 0; color: #1a73e8; }
-        label { font-weight: 600; display: block; margin-top: 12px; }
-        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
-        button { background: #1a73e8; color: white; border: none; padding: 10px 18px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 14px; font-size: 14px; }
-        button:hover { background: #1557b0; }
-        button.secondary { background: #34a853; }
-        button.secondary:hover { background: #2d8e47; }
-        .status { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: bold; }
-        .online { background: #e6f4ea; color: #137333; }
-        .offline { background: #fce8e6; color: #c5221f; }
-        .notify-box { border-left: 4px solid #1a73e8; background: #f8f9fa; padding: 12px; margin-top: 10px; border-radius: 4px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
-        th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; }
-        th { background: #f1f3f4; }
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-gradient: linear-gradient(135deg, #f0f4ff 0%, #e2e8f0 100%);
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success-bg: #dcfce7;
+            --success-text: #15803d;
+            --danger-bg: #fee2e2;
+            --danger-text: #b91c1c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px 16px;
+        }
+
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+        }
+
+        /* Header Banner */
+        .header {
+            background: var(--card-bg);
+            padding: 20px 28px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-box {
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .status-pill.online {
+            background: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .status-pill.offline {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-pill.online .dot {
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(21, 128, 61, 0.6); }
+            70% { box-shadow: 0 0 0 6px rgba(21, 128, 61, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(21, 128, 61, 0); }
+        }
+
+        /* 2-Column Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 860px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+            border: 1px solid rgba(255,255,255,0.8);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group { margin-bottom: 16px; }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--text-main);
+            background: #f8fafc;
+            transition: all 0.2s;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 135px;
+            line-height: 1.5;
+        }
+
+        .char-hint {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .char-ok { color: var(--success-text); font-weight: 600; }
+
+        .btn-primary {
+            width: 100%;
+            padding: 13px 20px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+        }
+
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-refresh {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-refresh:hover { background: #e2e8f0; }
+
+        .toast-msg {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+        }
+
+        /* Realtime Notification Cards */
+        .notify-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 290px;
+            overflow-y: auto;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 28px 16px;
+            color: var(--text-muted);
+            font-size: 13px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        .notify-card {
+            background: linear-gradient(to right, #f0fdf4, #ffffff);
+            border: 1px solid #bbf7d0;
+            border-left: 4px solid #16a34a;
+            border-radius: 10px;
+            padding: 14px 16px;
+            animation: slideIn 0.35s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .notify-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .score-badge {
+            background: #16a34a;
+            color: white;
+            font-weight: 700;
+            font-size: 13px;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        /* History Table */
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            background: #f8fafc;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-graded { background: #dcfce7; color: #15803d; }
+        .badge-submitted { background: #fef3c7; color: #b45309; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Hệ thống Nộp bài & Chấm tự động</h2>
-        <div>Trạng thái Realtime: <span id="connStatus" class="status offline">Đang kết nối...</span></div>
-    </div>
-
-    <div class="card">
-        <h3>1. Nộp bài tập</h3>
-        <label>Mã Sinh viên (Student ID):</label>
-        <input type="number" id="studentId" value="1" min="1">
-
-        <label>Chọn Bài tập (tải từ GET /assignments):</label>
-        <select id="assignmentSelect">
-            <option value="1">Đang tải danh sách bài tập...</option>
-        </select>
-
-        <label>Nội dung bài làm:</label>
-        <textarea id="content" rows="4" placeholder="Nhập nội dung bài làm của bạn (viết dài > 50 ký tự để đạt điểm cao)..."></textarea>
-
-        <button onclick="submitAssignment()">Nộp Bài Ngay</button>
-        <p id="submitMsg" style="color: #137333; font-weight: 600; margin-bottom: 0;"></p>
-    </div>
-
-    <div class="card">
-        <h3>2. Thông báo kết quả chấm Realtime (SignalR)</h3>
-        <div id="notifications">
-            <p style="color: #666; font-style: italic;">Chưa có thông báo mới. Hãy nộp bài và chờ vài giây...</p>
+<div class="container">
+    <!-- Top Header -->
+    <div class="header">
+        <div class="header-title">
+            <div class="logo-box">🎓</div>
+            <div>
+                <h1>Cổng Nộp Bài Tập Sinh Viên</h1>
+                <p>Hệ thống chấm điểm bất đồng bộ qua RabbitMQ & SignalR Realtime</p>
+            </div>
+        </div>
+        <div id="connStatus" class="status-pill offline">
+            <span class="dot"></span>
+            <span id="connText">Đang kết nối SignalR...</span>
         </div>
     </div>
 
-    <div class="card">
-        <h3>3. Lịch sử bài đã nộp (GET /students/{id}/submissions)</h3>
-        <button class="secondary" onclick="loadHistory()">Tải lại lịch sử bài nộp</button>
-        <div id="historyArea"></div>
+    <!-- Main 2-Column Content -->
+    <div class="main-grid">
+        <!-- Left Column: Submission Form -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📝 Nộp bài tập mới</h2>
+            </div>
+
+            <div class="form-group">
+                <label for="studentSelect">Chọn sinh viên:</label>
+                <select id="studentSelect" onchange="loadHistory()">
+                    <option value="1">1 - Nguyễn Văn A (sv1@ictu.edu.vn)</option>
+                    <option value="2">2 - Trần Thị B (sv2@ictu.edu.vn)</option>
+                    <option value="3">3 - Lê Văn C (sv3@ictu.edu.vn)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="assignmentSelect">Chọn bài tập:</label>
+                <select id="assignmentSelect">
+                    <option value="1">Đang tải danh sách bài tập...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="content">Nội dung bài làm:</label>
+                <textarea id="content" oninput="updateCharCount()" placeholder="Nhập nội dung bài làm (từ 20 ký tự trở lên sẽ được 9 điểm)..."></textarea>
+                <div class="char-hint">
+                    <span>Mốc điểm cao: ≥ 20 ký tự</span>
+                    <span id="charCount">0 ký tự</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="submitAssignment()">
+                <span>🚀 Nộp Bài Ngay</span>
+            </button>
+
+            <div id="submitMsg" class="toast-msg"></div>
+        </div>
+
+        <!-- Right Column: Realtime Notifications & History -->
+        <div>
+            <!-- Realtime Box -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🔔 Kết quả chấm tự động (Realtime)</h2>
+                </div>
+                <div id="notifications" class="notify-list">
+                    <div class="empty-state">
+                        Chưa có thông báo mới. Hãy nộp bài ở cột bên trái và chờ 3 giây để Worker chấm điểm!
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Box -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📋 Lịch sử bài đã nộp</h2>
+                    <button class="btn-refresh" onclick="loadHistory()">↻ Làm mới</button>
+                </div>
+                <div id="historyArea" class="table-wrap">
+                    <div class="empty-state">Đang tải lịch sử...</div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <script>
-        const API_BASE = "http://localhost:5158";
-        const HUB_URL = "http://localhost:5200/notificationHub";
+<script>
+    const API_BASE = "http://localhost:5158";
+    const HUB_URL = "http://localhost:5200/notificationHub";
 
-        // 1. Kết nối SignalR nhận thông báo Realtime
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl(HUB_URL)
-            .withAutomaticReconnect()
-            .build();
+    // Đếm ký tự realtime
+    function updateCharCount() {
+        const len = document.getElementById("content").value.trim().length;
+        const el = document.getElementById("charCount");
+        el.textContent = `${len} ký tự`;
+        el.className = len >= 20 ? "char-ok" : "";
+    }
 
-        connection.on("ReceiveGradingResult", (data) => {
-            const container = document.getElementById("notifications");
-            if (container.querySelector("p")) container.innerHTML = "";
+    // Kết nối SignalR
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl(HUB_URL)
+        .withAutomaticReconnect()
+        .build();
 
-            const item = document.createElement("div");
-            item.className = "notify-box";
-            item.innerHTML = `
-                <strong>Bài nộp #${data.submissionId} đã chấm xong!</strong><br>
-                Điểm số: <strong style="color:#d93025; font-size:16px;">${data.score}/10</strong> | Trạng thái: <b>${data.status}</b><br>
-                Nhận xét: <i>${data.feedback}</i>
-            `;
-            container.prepend(item);
-            loadHistory(); // Tự động cập nhật bảng lịch sử
+    connection.on("ReceiveGradingResult", (data) => {
+        const container = document.getElementById("notifications");
+        const empty = container.querySelector(".empty-state");
+        if (empty) empty.remove();
+
+        const item = document.createElement("div");
+        item.className = "notify-card";
+        item.innerHTML = `
+            <div class="notify-top">
+                <strong>✅ Bài nộp #${data.submissionId} đã có điểm!</strong>
+                <span class="score-badge">${data.score} / 10 điểm</span>
+            </div>
+            <div style="font-size: 13px; color: #334155;">
+                Nhận xét: <i>"${data.feedback}"</i>
+            </div>
+        `;
+        container.prepend(item);
+        loadHistory();
+    });
+
+    connection.start()
+        .then(() => {
+            const pill = document.getElementById("connStatus");
+            pill.className = "status-pill online";
+            document.getElementById("connText").textContent = "Đã kết nối SignalR (Online)";
+        })
+        .catch(err => {
+            document.getElementById("connText").textContent = "Mất kết nối SignalR";
+            console.error(err);
         });
 
-        connection.start()
-            .then(() => {
-                const el = document.getElementById("connStatus");
-                el.textContent = "Đã kết nối SignalR (Online)";
-                el.className = "status online";
-            })
-            .catch(err => console.error("Lỗi SignalR:", err));
+    // Tải danh sách bài tập
+    async function loadAssignments() {
+        try {
+            const res = await fetch(`${API_BASE}/assignments`);
+            const list = await res.json();
+            const select = document.getElementById("assignmentSelect");
+            select.innerHTML = list.map(a => `<option value="${a.id}">Bài tập ${a.id}: ${a.title}</option>`).join("");
+        } catch (e) {
+            console.error("Lỗi tải danh sách bài tập:", e);
+        }
+    }
 
-        // 2. Tải danh sách bài tập (GET /assignments)
-        async function loadAssignments() {
-            try {
-                const res = await fetch(`${API_BASE}/assignments`);
-                const list = await res.json();
-                const select = document.getElementById("assignmentSelect");
-                select.innerHTML = list.map(a => `<option value="${a.id}">#${a.id} - ${a.title}</option>`).join("");
-            } catch (e) {
-                console.error("Không tải được danh sách bài tập:", e);
-            }
+    // Nộp bài
+    async function submitAssignment() {
+        const studentId = parseInt(document.getElementById("studentSelect").value);
+        const assignmentId = document.getElementById("assignmentSelect").value;
+        const content = document.getElementById("content").value.trim();
+
+        if (!content) {
+            alert("Vui lòng nhập nội dung bài làm trước khi nộp!");
+            return;
         }
 
-        // 3. Gửi bài nộp (POST /assignments/{id}/submissions)
-        async function submitAssignment() {
-            const studentId = parseInt(document.getElementById("studentId").value);
-            const assignmentId = document.getElementById("assignmentSelect").value;
-            const content = document.getElementById("content").value.trim();
-
-            if (!content) return alert("Vui lòng nhập nội dung bài làm!");
-
+        try {
             const res = await fetch(`${API_BASE}/assignments/${assignmentId}/submissions`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -121,42 +504,54 @@
 
             if (res.ok) {
                 const result = await res.json();
-                document.getElementById("submitMsg").textContent = `Đã nộp thành công (Mã bài #${result.id})! Đang chờ Worker chấm...`;
+                const msg = document.getElementById("submitMsg");
+                msg.style.display = "block";
+                msg.textContent = `⏳ Đã gửi bài #${result.id} vào hàng đợi RabbitMQ! Đang chờ GradingWorker chấm...`;
                 document.getElementById("content").value = "";
+                updateCharCount();
                 loadHistory();
             }
+        } catch (e) {
+            alert("Không kết nối được tới SubmissionAPI (cổng 5158)!");
         }
+    }
 
-        // 4. Tra cứu lịch sử bài nộp của sinh viên (GET /students/{studentId}/submissions)
-        async function loadHistory() {
-            const studentId = document.getElementById("studentId").value;
+    // Tải lịch sử bài nộp của sinh viên đang chọn
+    async function loadHistory() {
+        const studentId = document.getElementById("studentSelect").value;
+        try {
             const res = await fetch(`${API_BASE}/students/${studentId}/submissions`);
             if (!res.ok) return;
             const data = await res.json();
 
             if (data.length === 0) {
-                document.getElementById("historyArea").innerHTML = "<p>Sinh viên này chưa có bài nộp nào.</p>";
+                document.getElementById("historyArea").innerHTML = `<div class="empty-state">Sinh viên này chưa có bài nộp nào.</div>`;
                 return;
             }
 
             let html = `<table>
-                <tr><th>Mã bài</th><th>Bài tập</th><th>Trạng thái</th><th>Điểm</th><th>Nhận xét</th></tr>`;
+                <thead>
+                    <tr><th>Mã</th><th>Bài tập</th><th>Trạng thái</th><th>Điểm</th><th>Nhận xét</th></tr>
+                </thead><tbody>`;
             for (const s of data) {
+                const isGraded = s.status === "Graded";
                 html += `<tr>
-                    <td>#${s.id}</td>
-                    <td>${s.assignmentId}</td>
-                    <td><b>${s.status}</b></td>
-                    <td>${s.score !== null ? s.score + "/10" : "-"}</td>
-                    <td>${s.feedback ?? "Đang chờ chấm..."}</td>
+                    <td><strong>#${s.id}</strong></td>
+                    <td>BT #${s.assignmentId}</td>
+                    <td><span class="badge ${isGraded ? 'badge-graded' : 'badge-submitted'}">${s.status}</span></td>
+                    <td><strong>${s.score !== null ? s.score + "/10" : "-"}</strong></td>
+                    <td style="color:#475569;">${s.feedback ?? "Đang chấm..."}</td>
                 </tr>`;
             }
-            html += "</table>";
+            html += "</tbody></table>";
             document.getElementById("historyArea").innerHTML = html;
+        } catch (e) {
+            console.error(e);
         }
+    }
 
-        // Khởi chạy dữ liệu ban đầu khi mở trang
-        loadAssignments();
-        loadHistory();
-    </script>
+    loadAssignments();
+    loadHistory();
+</script>
 </body>
 </html>
